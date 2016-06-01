@@ -22,7 +22,7 @@ var AIAction = function(pos) {
         //put the letter on the board
         next.board[this.movePosition] = state.turn;
 
-        if(state.turn === "O")
+        if(state.turn === robot)
             next.oMovesCount++;
 
         next.advanceTurn();
@@ -87,7 +87,7 @@ var AI = function(level) {
         else {
             var stateScore; // this stores the minimax value we'll compute
 
-            if(state.turn === "X")
+            if(state.turn === human)
             // X wants to maximize --> initialize to a value smaller than any possible score
                 stateScore = -1000;
             else
@@ -109,7 +109,7 @@ var AI = function(level) {
              * and evaluate the current state's value */
             availableNextStates.forEach(function(nextState) {
                 var nextScore = minimaxValue(nextState);
-                if(state.turn === "X") {
+                if(state.turn === human) {
                     // X wants to maximize --> update stateScore iff nextScore is larger
                     if(nextScore > stateScore)
                         stateScore = nextScore;
@@ -161,7 +161,7 @@ var AI = function(level) {
         });
 
         //sort the enumerated actions list by score
-        if(turn === "X")
+        if(turn === human)
         //X maximizes --> sort the actions in a descending manner to have the action with maximum minimax at first
             availableActions.sort(AIAction.DESCENDING);
         else
@@ -211,7 +211,7 @@ var AI = function(level) {
         });
 
         //sort the enumerated actions list by score
-        if(turn === "X")
+        if(turn === human)
         //X maximizes --> sort the actions in a descending manner to have the action with maximum minimax at first
             availableActions.sort(AIAction.DESCENDING);
         else

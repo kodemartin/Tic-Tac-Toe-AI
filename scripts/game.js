@@ -72,7 +72,7 @@ var State = function(old) {
         //check rows
         for(var i = 0; i <= 6; i = i + 3) {
             if(B[i] !== "E" && B[i] === B[i + 1] && B[i + 1] == B[i + 2]) {
-                this.result = B[i] + "-won"; //update the state result
+                this.result = B[i] === human ? "human" : "robot";
                 return true;
             }
         }
@@ -80,7 +80,7 @@ var State = function(old) {
         //check columns
         for(var i = 0; i <= 2 ; i++) {
             if(B[i] !== "E" && B[i] === B[i + 3] && B[i + 3] === B[i + 6]) {
-                this.result = B[i] + "-won"; //update the state result
+                this.result = B[i] === human ? "human" : "robot";
                 return true;
             }
         }
@@ -88,7 +88,7 @@ var State = function(old) {
         //check diagonals
         for(var i = 0, j = 4; i <= 2 ; i = i + 2, j = j - 2) {
             if(B[i] !== "E" && B[i] == B[i + j] && B[i + j] === B[i + 2*j]) {
-                this.result = B[i] + "-won"; //update the state result
+                this.result = B[i] === human ? "human" : "robot";
                 return true;
             }
         }
@@ -136,30 +136,55 @@ var Game = function(autoPlayer) {
      */
     this.advanceTo = function(_state) {
         this.currentState = _state;
+        var hScore = 0;
+        var timeout;
         if(_state.isTerminal()) {
             this.status = "ended";
 
-            if(_state.result === "X-won")
-                //X won
-                ui.switchViewTo("won");
-            else if(_state.result === "O-won")
-                //X lost
-                ui.switchViewTo("lost");
-            else
+            if(_state.result === "human") {
+                //The player has won
+                ui.switchViewTo("You won!");
+                hScore = parseInt($("#player").html().trim()) + 1;
+                $("#player").html(hScore);
+                $("#play").html("Rematch");
+                $("#side").text("X/O");
+                human = undefined;
+            }
+                       
+            else if(_state.result === "robot") {
+                //The algorithm has won
+                ui.switchViewTo("You lost :(");
+                hScore = parseInt($("#computer").html().trim()) + 1;
+                $("#computer").html(hScore);
+                $("#play").html("Rematch");
+                $("#side").text("X/O");
+                human = undefined;
+
+            } else {
                 //it's a draw
-                ui.switchViewTo("draw");
+                ui.switchViewTo("It's a draw.");
+                $("#play").html("Rematch");
+                $("#side").text("X/O");
+                human = undefined;
+
+            }
         }
         else {
+            ui.switchViewTo(this.currentState.turn);
             //the game is still running
+            if(this.currentState.turn === human) {
+                ui.switchViewTo("Your turn!");
+            } else {
+                
+                // set random delay up to 3000 msec
+                // to give the feeling of actual thought
+                timeout = Math.random()*3000;
+                ui.switchViewTo("Robot thinking...");
 
-            if(this.currentState.turn === "X") {
-                ui.switchViewTo("human");
-            }
-            else {
-                ui.switchViewTo("robot");
-
+                
                 //notify the AI player its turn has come up
-                this.ai.notify("O");
+                window.setTimeout(this.ai.notify, timeout, robot);
+                
             }
         }
     };
@@ -183,11 +208,11 @@ var Game = function(autoPlayer) {
  * @return [Number]: the score calculated for the human player
  */
 Game.score = function(_state) {
-    if(_state.result === "X-won"){
+    if(_state.result === "human"){
         // the x player won
         return 10 - _state.oMovesCount;
     }
-    else if(_state.result === "O-won") {
+    else if(_state.result === "robot") {
         //the x player lost
         return - 10 + _state.oMovesCount;
     }
